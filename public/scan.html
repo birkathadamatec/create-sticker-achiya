@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>סריקת ברקוד והדפסת מדבקה</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>סריקת ברקוד והפקת מדבקה</h1>
+          <p>הקש או סרוק ברקוד כדי לחפש את הנתונים בקובץ ה-CSV.</p>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="install-button" type="button" hidden>התקן אפליקציה</button>
+          <button class="secondary" id="go-upload" type="button">מעבר להעלאת CSV</button>
+        </div>
+      </header>
+
+      <section class="card grid">
+        <div>
+          <label for="barcode">שדה ברקוד</label>
+          <input
+            id="barcode"
+            name="barcode"
+            type="text"
+            inputmode="numeric"
+            placeholder="הדבק או סרוק ברקוד"
+          />
+        </div>
+        <div class="actions">
+          <button id="search-button" type="button">חפש ברקוד</button>
+          <span class="status" id="scan-status"></span>
+        </div>
+        <p id="csv-status" class="status"></p>
+      </section>
+
+      <section class="card hidden" id="label-section">
+        <div class="actions" style="margin-bottom: 16px;">
+          <span class="badge">מדבקה מוכנה להדפסה</span>
+          <button class="ghost" id="back-to-scan" type="button">חזרה לסריקה</button>
+        </div>
+        <div class="label-preview" id="label-preview"></div>
+        <div class="actions" style="margin-top: 16px;">
+          <button id="print-button" type="button">הדפסה (יוגדר בהמשך)</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop hidden" id="code-modal" hidden style="display: none;">
+      <div class="modal">
+        <h2>קוד גישה</h2>
+        <p>הזן קוד כדי לעבור למסך העלאת CSV.</p>
+        <input id="code-input" type="text" inputmode="numeric" placeholder="הזן קוד" />
+        <div class="actions" style="margin-top: 16px;">
+          <button id="code-submit" type="button">אישור</button>
+          <button class="secondary" id="code-cancel" type="button">ביטול</button>
+        </div>
+        <p class="status" id="code-status"></p>
+      </div>
+    </div>
+
+    <script src="./csv.js"></script>
+    <script src="./scan.js"></script>
+  </body>
+</html>
