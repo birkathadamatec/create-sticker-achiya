@@ -1,13 +1,10 @@
-const CACHE_NAME = "barcode-label-v4";
+const CACHE_NAME = "barcode-label-v7";
 const ASSETS = [
   "./",
   "./scan.html",
-  "./upload.html",
-  "./styles.css?v=4",
-  "./scan.js?v=4",
-  "./csv.js?v=4",
-  "./upload.js?v=4",
-  "./manifest.json?v=4",
+  "./styles.css?v=7",
+  "./scan.js?v=7",
+  "./manifest.json?v=7",
   "./icon.svg"
 ];
 

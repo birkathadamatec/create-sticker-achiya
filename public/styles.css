@@ -107,6 +107,50 @@ button:hover:not(:disabled) {
   padding: 16px;
   border-radius: 12px;
   background: #f8fafc;
+  display: grid;
+  gap: 16px;
+}
+
+.label-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+}
+
+.label-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.label-logo {
+  flex: 1;
+  min-height: 48px;
+  border: 2px dashed #cbd5f5;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.label-logo-image {
+  max-height: 48px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.label-counter {
+  font-weight: 700;
+  color: #1f2a37;
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 999px;
 }
 
 .label-row {

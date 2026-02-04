@@ -5,47 +5,18 @@ const labelSection = document.querySelector("#label-section");
 const labelPreview = document.querySelector("#label-preview");
 const backToScan = document.querySelector("#back-to-scan");
 const printButton = document.querySelector("#print-button");
-const goUpload = document.querySelector("#go-upload");
 const csvStatus = document.querySelector("#csv-status");
-
-const modal = document.querySelector("#code-modal");
-const codeInput = document.querySelector("#code-input");
-const codeSubmit = document.querySelector("#code-submit");
-const codeCancel = document.querySelector("#code-cancel");
-const codeStatus = document.querySelector("#code-status");
 
 const installButton = document.querySelector("#install-button");
 let deferredPrompt = null;
 
-function forceHideModal() {
-  modal.classList.add("hidden");
-  modal.setAttribute("hidden", "");
-}
-
-forceHideModal();
-
-function getGithubConfig() {
-  return {
-    owner: localStorage.getItem("githubOwner") || "",
-    repo: localStorage.getItem("githubRepo") || "",
-    branch: localStorage.getItem("githubBranch") || "main",
-    path: localStorage.getItem("githubPath") || "",
-  };
-}
-
-async function fetchCsvFromGithub() {
-  const config = getGithubConfig();
-  if (!config.owner || !config.repo || !config.path) {
-    throw new Error("יש להגדיר פרטי מאגר בדף העלאת ה-CSV.");
-  }
-
-  const rawUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${config.path}`;
-  const response = await fetch(rawUrl, { cache: "no-store" });
+async function fetchTaskData(taskId) {
+  const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`);
   if (!response.ok) {
-    throw new Error("לא ניתן לטעון את קובץ ה-CSV מהמאגר.");
+    throw new Error("לא ניתן לטעון נתונים מהמערכת.");
   }
 
-  return response.text();
+  return response.json();
 }
 
 async function lookupBarcode() {
@@ -59,25 +30,19 @@ async function lookupBarcode() {
   labelSection.classList.add("hidden");
 
   try {
-    const content = await fetchCsvFromGithub();
-    const rows = parseCsv(content);
-    if (rows.length === 0) {
-      throw new Error("קובץ ה-CSV ריק.");
+    const payload = await fetchTaskData(barcode);
+    const task = payload?.Data?.task;
+    if (!task) {
+      throw new Error("לא נמצאו נתונים למשימה.");
     }
 
-    const [headers, ...dataRows] = rows;
-    const match = dataRows.find((row) => String(row[0]).trim() === barcode);
+    const data = {
+      "כמות חבילות": task.packages_quantity ?? "-",
+      "מספר הזמנה": task.wp_order_id ?? "-",
+      "נהג": task.driver_str ?? "-",
+    };
 
-    if (!match) {
-      throw new Error("ברקוד לא נמצא בקובץ.");
-    }
-
-    const data = headers.reduce((acc, header, index) => {
-      acc[header || `עמודה ${index + 1}`] = match[index] ?? "";
-      return acc;
-    }, {});
-
-    renderLabel(data);
+    renderLabels(data, Number(task.packages_quantity || 1));
     statusEl.textContent = "נמצאו נתונים והמדבקה מוכנה.";
     labelSection.classList.remove("hidden");
   } catch (error) {
@@ -85,21 +50,54 @@ async function lookupBarcode() {
   }
 }
 
-function renderLabel(data) {
+function renderLabels(data, totalLabels) {
   labelPreview.innerHTML = "";
-  Object.entries(data).forEach(([key, value]) => {
-    const row = document.createElement("div");
-    row.className = "label-row";
+  const count = Number.isFinite(totalLabels) && totalLabels > 0 ? totalLabels : 1;
 
-    const label = document.createElement("div");
-    label.textContent = key;
+  for (let index = 1; index <= count; index += 1) {
+    const card = document.createElement("div");
+    card.className = "label-card";
 
-    const content = document.createElement("div");
-    content.textContent = value || "-";
+    const header = document.createElement("div");
+    header.className = "label-header";
 
-    row.append(label, content);
-    labelPreview.appendChild(row);
-  });
+    const logo = document.createElement("div");
+    logo.className = "label-logo";
+
+    const logoImage = document.createElement("img");
+    logoImage.src = "./assets/logo.png";
+    logoImage.alt = "Logo";
+    logoImage.className = "label-logo-image";
+    logoImage.addEventListener("error", () => {
+      logoImage.classList.add("hidden");
+      logo.textContent = "לוגו כאן";
+    });
+
+    logo.appendChild(logoImage);
+
+    const counter = document.createElement("div");
+    counter.className = "label-counter";
+    counter.textContent = `${index}/${count}`;
+
+    header.append(logo, counter);
+    card.appendChild(header);
+
+    Object.entries(data).forEach(([key, value]) => {
+      const row = document.createElement("div");
+      row.className = "label-row";
+
+      const label = document.createElement("div");
+      label.textContent = key;
+
+      const content = document.createElement("div");
+      content.textContent = value || "-";
+
+      row.append(label, content);
+      card.appendChild(row);
+    });
+
+    labelPreview.appendChild(card);
+  }
 }
 
 searchButton.addEventListener("click", lookupBarcode);
@@ -117,42 +115,6 @@ backToScan.addEventListener("click", () => {
 
 printButton.addEventListener("click", () => {
   statusEl.textContent = "כפתור ההדפסה מוכן להגדרה בהמשך.";
-});
-
-function openModal() {
-  modal.classList.remove("hidden");
-  modal.removeAttribute("hidden");
-  modal.style.display = "flex";
-  codeStatus.textContent = "";
-  codeInput.value = "";
-  codeInput.focus();
-}
-
-function closeModal() {
-  modal.classList.add("hidden");
-  modal.setAttribute("hidden", "");
-  modal.style.display = "";
-}
-
-goUpload.addEventListener("click", () => {
-  openModal();
-});
-
-codeCancel.addEventListener("click", closeModal);
-
-codeSubmit.addEventListener("click", () => {
-  const value = codeInput.value.trim();
-  if (value === "770") {
-    window.location.href = "./upload.html";
-    return;
-  }
-  codeStatus.textContent = "הקוד שגוי. נסה שוב.";
-});
-
-codeInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    codeSubmit.click();
-  }
 });
 
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -180,14 +142,4 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js");
 }
 
-function updateCsvStatus() {
-  const config = getGithubConfig();
-  if (!config.owner || !config.repo || !config.path) {
-    csvStatus.textContent = "אין הגדרות מאגר. יש להגדיר בדף העלאת CSV.";
-    return;
-  }
-
-  csvStatus.textContent = `מאגר פעיל: ${config.owner}/${config.repo} | קובץ: ${config.path}`;
-}
-
-updateCsvStatus();
+csvStatus.textContent = "המערכת קוראת נתונים ישירות מה-API.";

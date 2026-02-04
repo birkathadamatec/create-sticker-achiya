@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>סריקת ברקוד והדפסת מדבקה</title>
-    <link rel="stylesheet" href="./styles.css?v=4" />
-    <link rel="manifest" href="./manifest.json?v=4" />
+    <link rel="stylesheet" href="./styles.css?v=7" />
+    <link rel="manifest" href="./manifest.json?v=7" />
     <meta name="theme-color" content="#2563eb" />
   </head>
   <body>
@@ -17,7 +17,6 @@
         </div>
         <div class="actions">
           <button class="ghost" id="install-button" type="button" hidden>התקן אפליקציה</button>
-          <button class="secondary" id="go-upload" type="button">מעבר להעלאת CSV</button>
         </div>
       </header>
 
@@ -50,21 +49,6 @@
         </div>
       </section>
     </main>
-
-    <div class="modal-backdrop hidden" id="code-modal" hidden>
-      <div class="modal">
-        <h2>קוד גישה</h2>
-        <p>הזן קוד כדי לעבור למסך העלאת CSV.</p>
-        <input id="code-input" type="text" inputmode="numeric" placeholder="הזן קוד" />
-        <div class="actions" style="margin-top: 16px;">
-          <button id="code-submit" type="button">אישור</button>
-          <button class="secondary" id="code-cancel" type="button">ביטול</button>
-        </div>
-        <p class="status" id="code-status"></p>
-      </div>
-    </div>
-
-    <script src="./csv.js?v=4"></script>
-    <script src="./scan.js?v=4"></script>
+    <script src="./scan.js?v=7"></script>
   </body>
 </html>
