@@ -10,13 +10,40 @@ const csvStatus = document.querySelector("#csv-status");
 const installButton = document.querySelector("#install-button");
 let deferredPrompt = null;
 
+const WEBHOOK_URL =
+  "https://hook.integrator.boost.space/36qda98lb8qyzgj53xuqnsi8igbugnxr";
+const POLL_DELAY_MS = 1500;
+const MAX_POLL_ATTEMPTS = 10;
+
 async function fetchTaskData(taskId) {
-  const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`);
-  if (!response.ok) {
-    throw new Error("לא ניתן לטעון נתונים מהמערכת.");
+  const response = await fetch(WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ task_id: taskId }),
+  });
+
+  if (response.status !== 200) {
+    throw new Error("שליחת הברקוד נכשלה.");
   }
 
-  return response.json();
+  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_DELAY_MS));
+    const pollResponse = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ task_id: taskId }),
+    });
+
+    if (pollResponse.status === 201) {
+      return pollResponse.json();
+    }
+  }
+
+  throw new Error("לא התקבלה תשובה מהמערכת בזמן.");
 }
 
 async function lookupBarcode() {
@@ -31,11 +58,11 @@ async function lookupBarcode() {
 
   try {
     const payload = await fetchTaskData(barcode);
-    const task = payload?.Data?.task;
-    if (!task) {
+    if (!Array.isArray(payload) || payload.length === 0) {
       throw new Error("לא נמצאו נתונים למשימה.");
     }
 
+    const [task] = payload;
     const data = {
       "כמות חבילות": task.packages_quantity ?? "-",
       "מספר הזמנה": task.wp_order_id ?? "-",
