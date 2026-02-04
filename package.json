@@ -1,0 +1,14 @@
+{
+  "name": "create-sticker-achiya",
+  "version": "1.0.0",
+  "description": "CSV barcode lookup with label generation",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
