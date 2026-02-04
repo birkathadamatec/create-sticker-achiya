@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>העלאת CSV</title>
+    <link rel="stylesheet" href="./styles.css?v=4" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>העלאת קובץ CSV</h1>
+        <a class="badge" href="./scan.html">חזרה לסריקת ברקודים</a>
+      </header>
+
+      <section class="card">
+        <form id="github-form" class="grid">
+          <div>
+            <label for="github-owner">בעלים (Owner)</label>
+            <input id="github-owner" type="text" placeholder="username או ארגון" />
+          </div>
+          <div>
+            <label for="github-repo">שם מאגר (Repo)</label>
+            <input id="github-repo" type="text" placeholder="create-sticker-achiya" />
+          </div>
+          <div>
+            <label for="github-branch">ענף (Branch)</label>
+            <input id="github-branch" type="text" placeholder="main" />
+          </div>
+          <div>
+            <label for="github-path">נתיב קובץ CSV במאגר</label>
+            <input id="github-path" type="text" placeholder="data/stickers.csv" />
+          </div>
+          <div>
+            <label for="github-token">GitHub Token (צריך הרשאת repo)</label>
+            <input id="github-token" type="password" placeholder="ghp_..." />
+          </div>
+          <p>
+            ודא שלטוקן יש הרשאה ל-Contents (write) במאגר, אחרת ההעלאה תיכשל.
+          </p>
+          <button class="secondary" id="save-github" type="button">שמור הגדרות מאגר</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <form id="upload-form">
+          <div class="grid">
+            <div>
+              <label for="csv">בחר קובץ CSV</label>
+              <input id="csv" name="csv" type="file" accept=".csv" required />
+            </div>
+            <button type="submit">שמור קובץ חדש</button>
+          </div>
+        </form>
+        <p class="status" id="upload-status"></p>
+        <p>
+          העלאה של קובץ חדש תחליף את הקובץ הקיים במערכת, גם אם שם הקובץ שונה.
+        </p>
+        <p>
+          הקובץ נשמר במאגר GitHub כדי שניתן יהיה לגשת אליו מכל מכשיר.
+        </p>
+      </section>
+    </main>
+
+    <script src="./csv.js?v=4"></script>
+    <script src="./upload.js?v=4"></script>
+  </body>
+</html>
