@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>העלאת CSV</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>העלאת קובץ CSV</h1>
+        <a class="badge" href="/scan.html">חזרה לסריקת ברקודים</a>
+      </header>
+
+      <section class="card">
+        <form id="upload-form">
+          <div class="grid">
+            <div>
+              <label for="csv">בחר קובץ CSV</label>
+              <input id="csv" name="csv" type="file" accept=".csv" required />
+            </div>
+            <button type="submit">שמור קובץ חדש</button>
+          </div>
+        </form>
+        <p class="status" id="upload-status"></p>
+        <p>
+          העלאה של קובץ חדש תחליף את הקובץ הקיים במערכת, גם אם שם הקובץ שונה.
+        </p>
+        <p>
+          הקובץ נשמר מקומית בדפדפן לצורך חיפוש ברקודים, כך שהמערכת עובדת גם ב-GitHub
+          Pages ללא שרת.
+        </p>
+      </section>
+    </main>
+
+    <script src="/csv.js"></script>
+    <script src="/upload.js"></script>
+  </body>
+</html>
