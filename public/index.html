@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client PDF → Make Webhook</title>
+  <title>Client PDF → Webhook (no-cors)</title>
 
-  <!-- 1) html2canvas + jsPDF -->
+  <!-- html2canvas + jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -16,7 +16,7 @@
       background: #f6f6f6;
     }
 
-    /* אזור המדבקה שאנחנו “מצלמים” */
+    /* האזור שממנו מייצרים PDF */
     #label {
       width: 100mm;
       height: 100mm;
@@ -79,13 +79,14 @@
     <input id="nameInput" placeholder="שם מוצר" value="חלה" />
     <input id="dateInput" placeholder="תאריך" value="2026-02-10" />
     <input id="batchInput" placeholder="אצווה" value="000123" />
-    <button id="btn">Generate & Send to Make</button>
+    <button id="btn">Generate & Send (no-cors)</button>
   </div>
 
   <div class="status" id="status"></div>
 
   <script>
-    const MAKE_WEBHOOK_URL = "https://hook.integrator.boost.space/q78rwd42j34fi2nyhj5hguj6xlug3e5q";
+    // ⚠️ החלף ל-webhook שלך
+    const WEBHOOK_URL = "https://hook.integrator.boost.space/q78rwd42j34fi2nyhj5hguj6xlug3e5q";
 
     function setStatus(msg) {
       document.getElementById("status").textContent = msg;
@@ -98,7 +99,7 @@
     }
 
     async function generatePdfBase64FromElement(el) {
-      // scale גבוה נותן איכות טובה יותר (אבל יותר כבד)
+      // scale גבוה = איכות טובה יותר אבל קובץ גדול יותר
       const scale = 3;
 
       const canvas = await html2canvas(el, {
@@ -117,44 +118,32 @@
         format: [100, 100]
       });
 
-      // מכניסים את התמונה כולה בדיוק לגודל העמוד
       pdf.addImage(imgData, "PNG", 0, 0, 100, 100);
 
-      // מחזיר Base64 בלי prefix
-      const dataUriString = pdf.output("datauristring"); // "data:application/pdf;base64,...."
+      // מחזיר Base64 בלבד (בלי prefix)
+      const dataUriString = pdf.output("datauristring"); // data:application/pdf;base64,....
       return dataUriString.split(",")[1];
     }
 
-    async function sendToMake(pdfBase64) {
-      const payload = {
-        fileName: "label-100x100.pdf",
-        mimeType: "application/pdf",
-        fileBase64: pdfBase64,
-        meta: {
-          product: document.getElementById("nameInput").value,
-          date: document.getElementById("dateInput").value,
-          batch: document.getElementById("batchInput").value
-        }
-      };
+    async function sendToWebhookNoCorsAsText(payloadObject) {
+      // שולחים כטקסט כדי להימנע מ-preflight (OPTIONS) ברוב המקרים
+      const bodyText = JSON.stringify(payloadObject);
 
-      const resp = await fetch(MAKE_WEBHOOK_URL, {
+      // no-cors => לא נקבל תשובה אמיתית, ואי אפשר לדעת 100% אם השרת קיבל
+      await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=UTF-8"
+        },
+        body: bodyText
       });
-
-      if (!resp.ok) {
-        const text = await resp.text();
-        throw new Error(`Make webhook error: ${resp.status}\n${text}`);
-      }
-
-      return resp.text().catch(() => "");
     }
 
     document.getElementById("btn").addEventListener("click", async () => {
       try {
-        if (!MAKE_WEBHOOK_URL || MAKE_WEBHOOK_URL.includes("PASTE_YOUR")) {
-          setStatus("שים את כתובת ה-Webhook של Make בתוך MAKE_WEBHOOK_URL בקוד.");
+        if (!WEBHOOK_URL) {
+          setStatus("חסר WEBHOOK_URL");
           return;
         }
 
@@ -164,10 +153,23 @@
         const el = document.getElementById("label");
         const pdfBase64 = await generatePdfBase64FromElement(el);
 
-        setStatus(`נוצר PDF (${Math.round(pdfBase64.length / 4)} bytes בערך). שולח ל-Make...`);
-        const makeRespText = await sendToMake(pdfBase64);
+        // payload שנוח לקלוט במייק/אינטגרטור
+        const payload = {
+          fileName: "label-100x100.pdf",
+          mimeType: "application/pdf",
+          fileBase64: pdfBase64,
+          meta: {
+            product: document.getElementById("nameInput").value,
+            date: document.getElementById("dateInput").value,
+            batch: document.getElementById("batchInput").value
+          }
+        };
 
-        setStatus("נשלח ל-Make בהצלחה.\nתגובה:\n" + (makeRespText || "(no body)"));
+        setStatus("שולח ל-webhook (no-cors, text/plain)...\nשים לב: אין לנו תשובה, אז צריך לבדוק בצד של Make שהתקבל.");
+
+        await sendToWebhookNoCorsAsText(payload);
+
+        setStatus("הבקשה נשלחה מהדפדפן.\nעכשיו תבדוק במייק/Boost אם התקבלה (Logger / Create record וכו').");
       } catch (e) {
         setStatus("שגיאה:\n" + (e?.message || e));
       }
