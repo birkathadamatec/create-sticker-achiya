@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client PDF → Webhook (no-cors)</title>
+  <title>Generate PDF (Client) + Download</title>
 
-  <!-- html2canvas + jsPDF -->
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
@@ -16,11 +16,11 @@
       background: #f6f6f6;
     }
 
-    /* האזור שממנו מייצרים PDF */
+    /* אזור המדבקה */
     #label {
       width: 100mm;
       height: 100mm;
-      background: white;
+      background: #fff;
       border: 2px solid #000;
       box-sizing: border-box;
       padding: 8mm;
@@ -64,6 +64,12 @@
       font-size: 14px;
       white-space: pre-wrap;
     }
+
+    /* כדי שהצילום יהיה חד ונקי */
+    #label {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   </style>
 </head>
 
@@ -79,15 +85,12 @@
     <input id="nameInput" placeholder="שם מוצר" value="חלה" />
     <input id="dateInput" placeholder="תאריך" value="2026-02-10" />
     <input id="batchInput" placeholder="אצווה" value="000123" />
-    <button id="btn">Generate & Send (no-cors)</button>
+    <button id="btnDownload">צור PDF והורד</button>
   </div>
 
   <div class="status" id="status"></div>
 
   <script>
-    // ⚠️ החלף ל-webhook שלך
-    const WEBHOOK_URL = "https://hook.integrator.boost.space/q78rwd42j34fi2nyhj5hguj6xlug3e5q";
-
     function setStatus(msg) {
       document.getElementById("status").textContent = msg;
     }
@@ -98,9 +101,9 @@
       document.getElementById("pBatch").textContent = document.getElementById("batchInput").value || "";
     }
 
-    async function generatePdfBase64FromElement(el) {
-      // scale גבוה = איכות טובה יותר אבל קובץ גדול יותר
-      const scale = 3;
+    async function generatePdfBlobFromElement(el) {
+      // scale גבוה = איכות טובה יותר (גם קובץ יותר גדול)
+      const scale = 4;
 
       const canvas = await html2canvas(el, {
         backgroundColor: "#ffffff",
@@ -110,66 +113,50 @@
 
       const imgData = canvas.toDataURL("image/png");
 
-      // PDF בגודל 100x100mm
       const { jsPDF } = window.jspdf;
+
+      // PDF בגודל 100x100mm (10x10 ס"מ)
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: [100, 100]
       });
 
+      // מכניסים תמונה בדיוק לגודל העמוד
       pdf.addImage(imgData, "PNG", 0, 0, 100, 100);
 
-      // מחזיר Base64 בלבד (בלי prefix)
-      const dataUriString = pdf.output("datauristring"); // data:application/pdf;base64,....
-      return dataUriString.split(",")[1];
+      // Blob להורדה
+      return pdf.output("blob");
     }
 
-    async function sendToWebhookNoCorsAsText(payloadObject) {
-      // שולחים כטקסט כדי להימנע מ-preflight (OPTIONS) ברוב המקרים
-      const bodyText = JSON.stringify(payloadObject);
-
-      // no-cors => לא נקבל תשובה אמיתית, ואי אפשר לדעת 100% אם השרת קיבל
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=UTF-8"
-        },
-        body: bodyText
-      });
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
 
-    document.getElementById("btn").addEventListener("click", async () => {
+    document.getElementById("btnDownload").addEventListener("click", async () => {
       try {
-        if (!WEBHOOK_URL) {
-          setStatus("חסר WEBHOOK_URL");
-          return;
-        }
-
         updateLabelFromInputs();
         setStatus("מייצר PDF...");
 
         const el = document.getElementById("label");
-        const pdfBase64 = await generatePdfBase64FromElement(el);
+        const pdfBlob = await generatePdfBlobFromElement(el);
 
-        // payload שנוח לקלוט במייק/אינטגרטור
-        const payload = {
-          fileName: "label-100x100.pdf",
-          mimeType: "application/pdf",
-          fileBase64: pdfBase64,
-          meta: {
-            product: document.getElementById("nameInput").value,
-            date: document.getElementById("dateInput").value,
-            batch: document.getElementById("batchInput").value
-          }
-        };
+        const product = (document.getElementById("nameInput").value || "label")
+          .trim()
+          .replace(/[^\w\u0590-\u05FF\- ]+/g, "")
+          .replace(/\s+/g, "-");
 
-        setStatus("שולח ל-webhook (no-cors, text/plain)...\nשים לב: אין לנו תשובה, אז צריך לבדוק בצד של Make שהתקבל.");
+        const filename = `label-100x100-${product || "label"}.pdf`;
 
-        await sendToWebhookNoCorsAsText(payload);
-
-        setStatus("הבקשה נשלחה מהדפדפן.\nעכשיו תבדוק במייק/Boost אם התקבלה (Logger / Create record וכו').");
+        downloadBlob(pdfBlob, filename);
+        setStatus(`ה-PDF נוצר וירד למחשב: ${filename}`);
       } catch (e) {
         setStatus("שגיאה:\n" + (e?.message || e));
       }
