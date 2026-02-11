@@ -11,7 +11,7 @@
 
   <style>
     :root{
-      /* גודל המדבקה (תואם ל-PDF) */
+      /* גודל המדבקה (תואם למדבקה עצמה, לא לגובה הדף אחרי ההרחבה) */
       --size: 101.6mm;
 
       --border-outer: 2px;
@@ -292,8 +292,12 @@
     // ✅ החלף לכתובת ה-webhook שלך
     const WEBHOOK_URL = "https://hook.integrator.boost.space/q78rwd42j34fi2nyhj5hguj6xlug3e5q";
 
-    // ✅ הגדרת גודל אחת לכולם (לפי המדפסת שלך 4x4")
+    // ✅ גודל המדבקה האמיתי
     const LABEL_MM = 101.6;
+
+    // ✅ זה הפתרון לבעיה שלך: “עוד הזנה” אחרי ההדפסה כדי שהמדבקה תצא עד הסוף
+    // תתחיל עם 12, ואם יוצא יותר מדי – תרד ל-8. אם עדיין נשאר בפנים – תעלה ל-15.
+    const EXTRA_FEED_MM = 12;
 
     // ✅ אופציונלי: הדבק Data URI של הלוגו כדי להימנע מבעיות טעינה/PDF
     const LOGO_DATA_URI = ""; // "data:image/png;base64,..."
@@ -355,26 +359,29 @@
       const imgData = canvas.toDataURL("image/png");
 
       const { jsPDF } = window.jspdf;
+
+      // ✅ הדף ב-PDF גבוה יותר כדי לגרום להזנה נוספת בסוף
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [LABEL_MM, LABEL_MM]
+        format: [LABEL_MM, LABEL_MM + EXTRA_FEED_MM]
       });
 
-      // גודל העמוד בפועל (מה ש-jsPDF באמת ייצר)
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
-      // ✅ מדביקים את התמונה בדיוק לגודל הדף – אין פערים/שוליים
-      pdf.addImage(imgData, "PNG", 0, 0, pageW, pageH);
+      // ✅ מדביקים את המדבקה למעלה בדיוק בגודל 101.6x101.6
+      // השטח הנוסף בתחתית נשאר לבן => המדפסת מתקדמת עוד
+      pdf.addImage(imgData, "PNG", 0, 0, pageW, LABEL_MM);
 
-      // דוח מצב: גודל PDF + גודל ה-DOM שצולם
       const rect = el.getBoundingClientRect();
       const cssSize = getComputedStyle(el).width + " × " + getComputedStyle(el).height;
 
       setStatus(
         "נוצר PDF:\n" +
         `• Page size (mm): ${pageW.toFixed(2)} × ${pageH.toFixed(2)}\n` +
+        `• Label size (mm): ${LABEL_MM.toFixed(2)} × ${LABEL_MM.toFixed(2)}\n` +
+        `• Extra feed (mm): ${EXTRA_FEED_MM.toFixed(2)}\n` +
         `• Label CSS size: ${cssSize}\n` +
         `• Label DOM px: ${Math.round(rect.width)} × ${Math.round(rect.height)}\n` +
         "מחשב Base64..."
@@ -423,6 +430,7 @@
         bigNumber: document.getElementById("iNum").value,
         bigName: document.getElementById("iName").value,
         labelMm: LABEL_MM,
+        extraFeedMm: EXTRA_FEED_MM,
         generatedAt: new Date().toISOString()
       };
     }
