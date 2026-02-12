@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>חיפוש ברקוד → מדבקות</title>
+  <title>חיפוש ברקוד → חלונית</title>
 
   <style>
     :root{
@@ -51,7 +51,6 @@
     }
 
     .row{display:flex; gap:12px; flex-wrap:wrap; align-items:stretch;}
-
     .inputWrap{flex: 1 1 380px; position:relative;}
     input[type="text"]{
       width:100%;
@@ -131,90 +130,131 @@
       color: #ffd6d6;
     }
 
-    .labelsWrap{margin-top: 16px; display:none;}
-    .labelsHead{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 10px;}
-    .labelsHead h2{margin:0; font-size: 15px; font-weight: 780;}
-    .labelsGrid{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;}
-
-    .label{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border: 1px solid var(--label-border);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.28);
-      position:relative;
-      overflow:hidden;
-      min-height: 190px;
+    /* =========================
+       FULLSCREEN MODAL (חלונית)
+       ========================= */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      padding: 10px;
     }
-    .label::before{
+    .modalOverlay.show{display:flex;}
+
+    .modal{
+      width: min(980px, 96vw);
+      height: min(720px, 92vh); /* כמעט כל המסך */
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 22px;
+      box-shadow: 0 30px 100px rgba(0,0,0,.55);
+      position: relative;
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
+      padding: 18px;
+    }
+    .modal::before{
       content:"";
       position:absolute;
       inset:-2px;
-      background: radial-gradient(380px 220px at 80% 0%, rgba(110,168,255,.18), transparent 55%),
-                  radial-gradient(320px 220px at 10% 100%, rgba(118,243,199,.14), transparent 55%);
+      background:
+        radial-gradient(700px 400px at 80% 0%, rgba(110,168,255,.22), transparent 60%),
+        radial-gradient(520px 400px at 10% 100%, rgba(118,243,199,.18), transparent 60%);
       pointer-events:none;
-      z-index:0;
     }
-    .label > *{position:relative; z-index:1}
+    .modal > *{position:relative; z-index:1}
 
-    .labelTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom: 10px;}
-    .logoBox{display:flex; align-items:center; gap:10px; min-width:0;}
-    .logoBox img{
-      width: 54px; height: 54px; object-fit: contain;
+    .modalTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+    .modalLogo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .modalLogo img{
+      width: 56px; height: 56px; object-fit: contain;
       background: rgba(255,255,255,.07);
       border: 1px solid rgba(255,255,255,.14);
       border-radius: 14px;
       padding: 8px;
     }
-    .labelMeta{text-align:left; display:flex; flex-direction:column; gap:6px; align-items:flex-end;}
-    .counter{
-      font-weight: 800;
-      font-size: 12px;
-      padding: 6px 10px;
+
+    .orderSmall{
+      font-size: 14px;
+      color: rgba(233,240,255,.8);
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 8px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.14);
-      color: var(--text);
+      font-weight: 700;
+      max-width: 70%;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .kv{display:grid; grid-template-columns: 1fr; gap:10px; margin-top: 8px;}
-    .kvRow{
+    .modalBody{
+      flex: 1;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      padding: 10px 10px 14px;
+      gap: 14px;
+    }
+
+    /* שם הנהג - ענק */
+    .driverBig{
+      font-weight: 900;
+      letter-spacing: .3px;
+      line-height: 1.05;
+      font-size: clamp(44px, 7.5vw, 120px);
+      color: var(--text);
+      text-shadow: 0 16px 40px rgba(0,0,0,.35);
+      word-break: break-word;
+    }
+
+    /* מספר משימה - גדול אבל פחות מהשם */
+    .taskMid{
+      font-weight: 850;
+      font-size: clamp(22px, 3.2vw, 52px);
+      color: rgba(233,240,255,.92);
       background: rgba(10,14,28,.35);
       border: 1px solid rgba(255,255,255,.12);
-      border-radius: 14px;
-      padding: 10px 12px;
-    }
-    .k{color: var(--muted); font-size: 12px; margin-bottom: 2px; font-weight: 650;}
-    .v{
-      font-size: 18px;
-      font-weight: 850;
-      letter-spacing: .3px;
-      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 16px;
+      width: min(820px, 92%);
       word-break: break-word;
-      line-height: 1.15;
     }
-    .tinyNote{margin-top: 10px; color: rgba(233,240,255,.55); font-size: 12px;}
 
-    @media print{
-      body{background:#fff !important; color:#000 !important;}
-      .wrap{max-width:none; padding:0; margin:0}
-      header, .panel, .labelsHead, .status, .noPrint{display:none !important;}
-      .labelsWrap{display:block !important; margin:0 !important;}
-      .labelsGrid{grid-template-columns: 1fr !important; gap: 0 !important;}
-      .label{
-        page-break-after: always;
-        border: 1px solid #000 !important;
-        box-shadow:none !important;
-        background:#fff !important;
-        border-radius: 0 !important;
-        min-height: auto !important;
+    .hintSmall{
+      margin-top: 6px;
+      color: rgba(233,240,255,.55);
+      font-size: 12px;
+    }
+
+    @media (max-width: 520px){
+      .modal{
+        width: 96vw;
+        height: 94vh; /* בטלפון כמעט כל המסך */
+        padding: 14px;
+        border-radius: 18px;
       }
-      .label::before{display:none !important;}
-      .kvRow{border: 1px solid #000 !important; background:#fff !important;}
-      .k{color:#000 !important}
-      .v{color:#000 !important}
-      .logoBox img{border: 1px solid #000 !important; background:#fff !important;}
-      .counter{border: 1px solid #000 !important; background:#fff !important; color:#000 !important;}
+      .modalLogo img{width: 50px; height: 50px;}
+      .orderSmall{max-width: 78%;}
     }
   </style>
 </head>
@@ -225,8 +265,8 @@
       <div class="brand">
         <div class="dot"></div>
         <div>
-          <h1>חיפוש ברקוד והפקת מדבקות</h1>
-          <p class="sub">סריקה → חיפוש אוטומטי | הקלדה ידנית → חיפוש בלחיצה</p>
+          <h1>חיפוש ברקוד והצגת חלונית</h1>
+          <p class="sub">סריקה → חלונית 3 שניות → חזרה אוטומטית לסריקה</p>
         </div>
       </div>
       <div class="noPrint" style="display:flex; gap:10px; align-items:center;">
@@ -255,22 +295,27 @@
 
         <button id="searchBtn" class="btnPrimary">חיפוש</button>
         <button id="clearBtn" class="btnGhost">נקה</button>
-        <button id="installBtn" class="btnGhost" style="display:none;">התקן אפליקציה</button>
       </div>
 
       <div id="status" class="status"></div>
     </div>
+  </div>
 
-    <div id="labelsWrap" class="labelsWrap">
-      <div class="labelsHead">
-        <h2>תצוגת מדבקות</h2>
-        <div class="noPrint" style="display:flex; gap:10px;">
-          <button id="printBtn" class="btnPrimary">שלח להדפסה</button>
-          <button id="backBtn" class="btnGhost">חזרה לחיפוש</button>
+  <!-- חלונית -->
+  <div id="modalOverlay" class="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <div class="modalTop">
+        <div class="modalLogo">
+          <img src="icon.svg" alt="לוגו" onerror="this.style.display='none'">
         </div>
+        <div id="orderSmall" class="orderSmall"></div>
       </div>
 
-      <div id="labelsGrid" class="labelsGrid"></div>
+      <div class="modalBody">
+        <div id="driverBig" class="driverBig"></div>
+        <div id="taskMid" class="taskMid"></div>
+        <div class="hintSmall">נסגר אוטומטית בעוד רגע…</div>
+      </div>
     </div>
   </div>
 
@@ -280,15 +325,14 @@
 
     // דרישה: אם אין 201 עם נתונים תוך 2 שניות => שגיאה
     const POLL_TIMEOUT_MS  = 2000;
-
-    // כדי להספיק בתוך 2 שניות, פולינג מהיר יחסית
     const POLL_INTERVAL_MS = 250;
 
     // זיהוי "סריקה" מול "הקלדה ידנית"
-    // רוב הסורקים מזינים את כל המחרוזת מהר מאוד (עשרות מילישניות לכל התו),
-    // בעוד הקלדה ידנית איטית בהרבה.
-    const SCAN_MAX_TOTAL_MS = 220;   // כל הקלט הושלם מהר מזה => סריקה
-    const SCAN_MIN_LEN      = 4;     // כדי לא לטריגר על הקלדה של 1-2 תווים
+    const SCAN_MAX_TOTAL_MS = 220;
+    const SCAN_MIN_LEN      = 4;
+
+    // חלונית
+    const MODAL_AUTO_CLOSE_MS = 3000;
 
     // === Elements ===
     const barcodeInput = document.getElementById("barcodeInput");
@@ -296,94 +340,10 @@
     const clearBtn     = document.getElementById("clearBtn");
     const statusEl     = document.getElementById("status");
 
-    const labelsWrap   = document.getElementById("labelsWrap");
-    const labelsGrid   = document.getElementById("labelsGrid");
-    const printBtn     = document.getElementById("printBtn");
-    const backBtn      = document.getElementById("backBtn");
-
-  // === PWA Install Button ===
-  const installBtn = document.getElementById("installBtn");
-  let deferredInstallPrompt = null;
-
-  function isRunningStandalone(){
-    // Android/Chrome: display-mode
-    const isStandaloneDisplay = window.matchMedia?.("(display-mode: standalone)")?.matches;
-    // iOS Safari:
-    const isIOSStandalone = window.navigator.standalone === true;
-    return !!(isStandaloneDisplay || isIOSStandalone);
-  }
-
-  function isIOS(){
-    // iPhone/iPad Safari זיהוי בסיסי
-    return /iphone|ipad|ipod/i.test(navigator.userAgent);
-  }
-
-  function isSafari(){
-    // כדי לא להציג על Chrome iOS (שעדיין Safari מנוע, אבל חוויית ההתקנה שונה)
-    return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  }
-
-  async function updateInstallButtonVisibility(){
-    // אם כבר מותקן / רץ כ-PWA — אין מה להציג
-    if (isRunningStandalone()){
-      installBtn.style.display = "none";
-      return;
-    }
-
-    // אם יש API שמזהה אפליקציות קשורות מותקנות (לא בכל דפדפן)
-    if (navigator.getInstalledRelatedApps){
-      try{
-        const related = await navigator.getInstalledRelatedApps();
-        if (related && related.length){
-          installBtn.style.display = "none";
-          return;
-        }
-      }catch(e){}
-    }
-
-    // iOS Safari: אין beforeinstallprompt -> מציגים כפתור שמסביר איך להוסיף למסך הבית
-    if (isIOS() && isSafari()){
-      installBtn.style.display = "inline-flex";
-      installBtn.textContent = "הוסף למסך הבית";
-      installBtn.onclick = () => {
-        alert("ב־iPhone: לחץ על כפתור השיתוף (Share) ואז 'הוסף למסך הבית' (Add to Home Screen).");
-      };
-      return;
-    }
-
-    // Android/Chromium: נציג רק אם האירוע beforeinstallprompt תפס
-    // (כלומר: האתר באמת עומד בתנאים)
-    installBtn.style.display = deferredInstallPrompt ? "inline-flex" : "none";
-    if (deferredInstallPrompt){
-      installBtn.textContent = "התקן אפליקציה";
-      installBtn.onclick = async () => {
-        try{
-          deferredInstallPrompt.prompt();
-          const choice = await deferredInstallPrompt.userChoice;
-          deferredInstallPrompt = null;
-          await updateInstallButtonVisibility(); // אחרי ניסיון התקנה נעדכן מצב
-        }catch(e){}
-      };
-    }
-  }
-
-  // Chrome/Edge Android: נתפס רק אם יש תנאים ל-PWA (manifest + https + service worker וכו')
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault(); // כדי להציג כפתור שלך במקום ה-banner האוטומטי
-    deferredInstallPrompt = e;
-    updateInstallButtonVisibility();
-  });
-
-  // אחרי התקנה
-  window.addEventListener("appinstalled", () => {
-    deferredInstallPrompt = null;
-    updateInstallButtonVisibility();
-  });
-
-  // בעת טעינה
-  window.addEventListener("load", () => {
-    updateInstallButtonVisibility();
-  });
+    const modalOverlay = document.getElementById("modalOverlay");
+    const orderSmallEl = document.getElementById("orderSmall");
+    const driverBigEl  = document.getElementById("driverBig");
+    const taskMidEl    = document.getElementById("taskMid");
 
     let activeAbortController = null;
 
@@ -391,6 +351,8 @@
     let firstKeyTime = null;
     let lastKeyTime = null;
     let keyCount = 0;
+
+    let modalCloseTimer = null;
 
     function setStatus(text, {loading=false, error=false} = {}){
       statusEl.className = "status" + (error ? " error" : "");
@@ -413,68 +375,69 @@
         .replaceAll("'","&#039;");
     }
 
-    function showLabelsView(){
-      labelsWrap.style.display = "block";
-      document.querySelectorAll(".panel, header").forEach(el => el.style.display = "none");
-      window.scrollTo({top: 0, behavior: "smooth"});
+    function resetTypingProfile(){
+      firstKeyTime = null;
+      lastKeyTime = null;
+      keyCount = 0;
     }
 
-    function showSearchView(){
-    labelsWrap.style.display = "none";
-    document.querySelectorAll(".panel, header").forEach(el => el.style.display = "");
-    labelsGrid.innerHTML = "";
-    setStatus("");
+    function isLikelyScan(){
+      const v = (barcodeInput.value || "").trim();
+      if(v.length < SCAN_MIN_LEN) return false;
+      if(firstKeyTime == null || lastKeyTime == null) return false;
+      const total = lastKeyTime - firstKeyTime;
+      return total > 0 && total <= SCAN_MAX_TOTAL_MS;
+    }
 
-    // ✅ איפוס הברקוד כשחוזרים לחיפוש
-    barcodeInput.value = "";
-    resetTypingProfile();
+    function resetToReady(){
+      barcodeInput.value = "";
+      resetTypingProfile();
+      setStatus("");
+      barcodeInput.focus();
+    }
 
-    barcodeInput.focus();
-  }
-
-    function buildLabels({ barcode, wp_order_id, driver_str, packages_quantity }){
-      const total = Number(packages_quantity || 1);
-      const count = (Number.isFinite(total) && total > 1) ? total : 1;
-
-      labelsGrid.innerHTML = "";
-
-      for(let i=1; i<=count; i++){
-        const counter = count > 1 ? `${i}/${count}` : "";
-        const label = document.createElement("div");
-        label.className = "label";
-
-        label.innerHTML = `
-          <div class="labelTop">
-            <div class="logoBox">
-              <img src="icon.svg" alt="לוגו" onerror="this.style.display='none'">
-            </div>
-            <div class="labelMeta">
-              ${counter ? `<div class="counter">${escapeHtml(counter)}</div>` : ""}
-            </div>
-          </div>
-
-          <div class="kv">
-            <div class="kvRow">
-              <div class="k">מספר הזמנה</div>
-              <div class="v">${escapeHtml(wp_order_id ?? "")}</div>
-            </div>
-
-            <div class="kvRow">
-              <div class="k">שם הנהג</div>
-              <div class="v">${escapeHtml(driver_str ?? "")}</div>
-            </div>
-
-            <div class="kvRow">
-              <div class="k">מספר משימה</div>
-              <div class="v">${escapeHtml(barcode)}</div>
-            </div>
-          </div>
-
-          <div class="tinyNote">הדפסה: בדוק הגדרות מדפסת מדבקות (גודל, שוליים, קנה מידה).</div>
-        `;
-        labelsGrid.appendChild(label);
+    function closeModal(){
+      if(modalCloseTimer){
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
       }
+      modalOverlay.classList.remove("show");
+      modalOverlay.setAttribute("aria-hidden", "true");
+      resetToReady();
     }
+
+    function openModal({ wp_order_id, driver_str, barcode }){
+      // למקרה שקופץ שוב לפני שנסגר הקודם
+      if(modalCloseTimer){
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
+      }
+
+      orderSmallEl.textContent = `הזמנה: ${wp_order_id || ""}`;
+      driverBigEl.textContent  = driver_str || "";
+      taskMidEl.textContent    = `משימה: ${barcode || ""}`;
+
+      modalOverlay.classList.add("show");
+      modalOverlay.setAttribute("aria-hidden", "false");
+
+      modalCloseTimer = setTimeout(() => {
+        closeModal();
+      }, MODAL_AUTO_CLOSE_MS);
+    }
+
+    // אפשר לסגור ידנית בלחיצה על הרקע (לא ביקשת, אבל זה הגיוני ולא מפריע)
+    modalOverlay.addEventListener("click", (e) => {
+      if(e.target === modalOverlay){
+        closeModal();
+      }
+    });
+
+    // ESC סוגר
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && modalOverlay.classList.contains("show")){
+        closeModal();
+      }
+    });
 
     async function safeReadText(res){
       try { return (await res.text())?.slice(0, 200); } catch { return ""; }
@@ -535,15 +498,14 @@
         }
 
         const payload = result.data || {};
-        buildLabels({
-          barcode,
-          wp_order_id: payload.wp_order_id ?? "",
-          driver_str: payload.driver_str ?? "",
-          packages_quantity: payload.packages_quantity ?? 1
-        });
 
         setStatus("");
-        showLabelsView();
+        // פתיחת חלונית 3 שניות ואז חזרה אוטומטית מוכנה לסריקה
+        openModal({
+          wp_order_id: payload.wp_order_id ?? "",
+          driver_str: payload.driver_str ?? "",
+          barcode
+        });
 
       }catch(err){
         if(err?.name === "AbortError") return;
@@ -552,21 +514,6 @@
         searchBtn.disabled = false;
         clearBtn.disabled = false;
       }
-    }
-
-    // === Scan detection ===
-    function resetTypingProfile(){
-      firstKeyTime = null;
-      lastKeyTime = null;
-      keyCount = 0;
-    }
-
-    function isLikelyScan(){
-      const v = (barcodeInput.value || "").trim();
-      if(v.length < SCAN_MIN_LEN) return false;
-      if(firstKeyTime == null || lastKeyTime == null) return false;
-      const total = lastKeyTime - firstKeyTime;
-      return total > 0 && total <= SCAN_MAX_TOTAL_MS;
     }
 
     // === Events ===
@@ -579,26 +526,14 @@
       barcodeInput.focus();
     });
 
-    backBtn.addEventListener("click", () => showSearchView());
-
-    // נשאר ריק כרגע כמו שביקשת
-    printBtn.addEventListener("click", () => {
-      // intentionally empty placeholder
-      // later: window.print();
-    });
-
-    // נבנה פרופיל הקלדה/סריקה לפי keydown (כדי להבדיל מהדבקה/אוטופיל)
     barcodeInput.addEventListener("keydown", (e) => {
       const now = performance.now();
 
-      // אם זה התו הראשון בסשן
       if(firstKeyTime == null) firstKeyTime = now;
       lastKeyTime = now;
 
-      // נספור רק תווים "אמיתיים"
       if(e.key && e.key.length === 1) keyCount++;
 
-      // הרבה סורקים שולחים Enter בסוף -> במקרה כזה נריץ רק אם זו סריקה
       if(e.key === "Enter"){
         e.preventDefault();
         const shouldAutoRun = isLikelyScan();
@@ -607,14 +542,11 @@
         if(shouldAutoRun){
           runSearch();
         }else{
-          // הקלדה ידנית: Enter לא מריץ. רק כפתור חיפוש.
           setStatus("הוקלד ידנית — לחץ על חיפוש", {loading:false});
         }
       }
     });
 
-    // אם המשתמש מקליד לאט (ידני) – לא מריצים כלום.
-    // אם זו סריקה בלי Enter (נדיר, אבל קיים) – נריץ אחרי blur/Change רק אם זה נראה סריקה.
     barcodeInput.addEventListener("change", () => {
       if(isLikelyScan()){
         runSearch();
@@ -622,7 +554,6 @@
       resetTypingProfile();
     });
 
-    // Focus on load
     window.addEventListener("load", () => barcodeInput.focus());
   </script>
 </body>
